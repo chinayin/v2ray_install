@@ -463,6 +463,8 @@ port_exist_check() {
   fi
 }
 acme_register_account(){
+  is_root
+  check_system
   ssl_install
 
   if "$HOME"/.acme.sh/acme.sh --register-account -m "${random_num}@acme.com" --server zerossl; then
