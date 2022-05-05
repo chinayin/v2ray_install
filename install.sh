@@ -463,6 +463,8 @@ port_exist_check() {
   fi
 }
 acme_register_account(){
+  ssl_install
+
   if "$HOME"/.acme.sh/acme.sh --register-account -m "${random_num}@acme.com" --server zerossl; then
     echo -e "${OK} ${GreenBG} 注册ZeroSSL账号成功，${random_num}@acme.com ${Font}"
     sleep 2
