@@ -463,10 +463,6 @@ port_exist_check() {
   fi
 }
 acme_register_account(){
-  is_root
-  check_system
-  ssl_install
-
   if "$HOME"/.acme.sh/acme.sh --register-account -m "${random_num}@acme.com" --server zerossl; then
     echo -e "${OK} ${GreenBG} 注册ZeroSSL账号成功，${random_num}@acme.com ${Font}"
     sleep 2
@@ -476,6 +472,8 @@ acme_register_account(){
   fi
 }
 acme() {
+  acme_register_account
+
   if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
     echo -e "${OK} ${GreenBG} SSL 证书测试签发成功，开始正式签发 ${Font}"
     rm -rf "$HOME/.acme.sh/${domain}_ecc"
@@ -986,8 +984,7 @@ menu() {
   echo -e "${Green}14.${Font} 卸载 V2Ray"
   echo -e "${Green}15.${Font} 更新 证书crontab计划任务"
   echo -e "${Green}16.${Font} 清空 证书遗留文件"
-  echo -e "${Green}17.${Font} 注册 ZeroSSL账号"
-  echo -e "${Green}18.${Font} 退出 \n"
+  echo -e "${Green}17.${Font} 退出 \n"
 
   read -rp "请输入数字：" menu_num
   case $menu_num in
@@ -1063,9 +1060,6 @@ menu() {
     delete_tls_key_and_crt
     ;;
   17)
-    acme_register_account
-    ;;
-  18)
     exit 0
     ;;
   *)
