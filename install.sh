@@ -139,7 +139,7 @@ chrony_install() {
   chronyc sourcestats -v
   chronyc tracking -v
   date
-  read -rp "请确认时间是否准确,误差范围±3分钟(Y/N): " chrony_install
+  read -rp "请确认时间是否准确,误差范围±3分钟(Y/n): " chrony_install
   [[ -z ${chrony_install} ]] && chrony_install="Y"
   case $chrony_install in
   [yY][eE][sS] | [yY])
@@ -516,8 +516,9 @@ v2ray_conf_add_h2() {
 }
 old_config_exist_check() {
   if [[ -f $v2ray_qr_config_file ]]; then
-    echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/N]? ${Font}"
+    echo -e "${OK} ${GreenBG} 检测到旧配置文件，是否读取旧文件配置 [Y/n]? ${Font}"
     read -r ssl_delete
+    [[ -z ${ssl_delete} ]] && ssl_delete="Y"
     case $ssl_delete in
     [yY][eE][sS] | [yY])
       echo -e "${OK} ${GreenBG} 已保留旧配置  ${Font}"
@@ -734,8 +735,9 @@ show_information() {
 ssl_judge_and_install() {
   if [[ -f "/data/v2ray.key" || -f "/data/v2ray.crt" ]]; then
     echo "/data 目录下证书文件已存在"
-    echo -e "${OK} ${GreenBG} 是否删除 [Y/N]? ${Font}"
+    echo -e "${OK} ${GreenBG} 是否删除 [Y/n]? ${Font}"
     read -r ssl_delete
+    [[ -z ${ssl_delete} ]] && ssl_delete="Y"
     case $ssl_delete in
     [yY][eE][sS] | [yY])
       rm -rf /data/*
@@ -832,8 +834,9 @@ uninstall_all() {
   [[ -d $v2ray_bin_dir ]] && rm -rf $v2ray_bin_dir
   [[ -d $v2ray_bin_dir_old ]] && rm -rf $v2ray_bin_dir_old
   if [[ -d $nginx_dir ]]; then
-    echo -e "${OK} ${Green} 是否卸载 Nginx [Y/N]? ${Font}"
+    echo -e "${OK} ${Green} 是否卸载 Nginx [Y/n]? ${Font}"
     read -r uninstall_nginx
+    [[ -z ${uninstall_nginx} ]] && uninstall_nginx="Y"
     case $uninstall_nginx in
     [yY][eE][sS] | [yY])
       rm -rf $nginx_dir
@@ -916,8 +919,9 @@ update_sh() {
   echo "$ol_version" >$version_cmp
   echo "$shell_version" >>$version_cmp
   if [[ "$shell_version" < "$(sort -rV $version_cmp | head -1)" ]]; then
-    echo -e "${OK} ${GreenBG} 存在新版本，是否更新 [Y/N]? ${Font}"
+    echo -e "${OK} ${GreenBG} 存在新版本，是否更新 [Y/n]? ${Font}"
     read -r update_confirm
+    [[ -z ${update_confirm} ]] && update_confirm="Y"
     case $update_confirm in
     [yY][eE][sS] | [yY])
       wget -N --no-check-certificate https://raw.githubusercontent.com/chinayin/v2ray_install/${github_branch}/install.sh
