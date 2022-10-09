@@ -352,13 +352,13 @@ nginx_install() {
   cd ${nginx_openssl_src} || exit
 
   [[ -d nginx-"$nginx_version" ]] && rm -rf nginx-"$nginx_version"
-  tar -zxvf nginx-"$nginx_version".tar.gz
+  tar -zxf nginx-"$nginx_version".tar.gz
 
   [[ -d openssl-"$openssl_version" ]] && rm -rf openssl-"$openssl_version"
-  tar -zxvf openssl-"$openssl_version".tar.gz
+  tar -zxf openssl-"$openssl_version".tar.gz
 
   [[ -d jemalloc-"${jemalloc_version}" ]] && rm -rf jemalloc-"${jemalloc_version}"
-  tar -xvf jemalloc-"${jemalloc_version}".tar.bz2
+  tar -xf jemalloc-"${jemalloc_version}".tar.bz2
 
   [[ -d "$nginx_dir" ]] && rm -rf ${nginx_dir}
 
