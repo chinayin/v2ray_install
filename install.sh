@@ -234,9 +234,10 @@ basic_optimization() {
 }
 port_alterid_set() {
   if [[ "on" != "$old_config_status" ]]; then
-    read -rp "请输入连接端口（default:443）:" port
+    read -rp "请输入连接端口: [default: 443]" port
     [[ -z ${port} ]] && port="443"
-    read -rp "请输入alterID（default:0 仅允许填数字）:" alterID
+    # 新版v2ray 默认设置alterID为0
+    #read -rp "请输入alterID: [default:0 仅允许填数字]" alterID
     [[ -z ${alterID} ]] && alterID="0"
   fi
 }
@@ -434,7 +435,8 @@ domain_check() {
     sleep 2
   else
     echo -e "${Error} ${RedBG} 请确保域名添加了正确的 A 记录，否则将无法正常使用 V2ray ${Font}"
-    echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配 是否继续安装? [y/n] ${Font}" && read -r install
+    echo -e "${Error} ${RedBG} 域名dns解析IP 与 本机IP 不匹配 是否继续安装? [y/N] ${Font}" && read -r install
+    [[ -z ${install} ]] && install="N"
     case $install in
     [yY][eE][sS] | [yY])
       echo -e "${GreenBG} 继续安装 ${Font}"
@@ -701,7 +703,7 @@ vmess_link_image_choice() {
   echo "请选择生成的链接种类"
   echo "1: V2RayNG/V2RayN"
   echo "2: quantumult"
-  read -rp "请输入：" link_version
+  read -rp "请输入: [default: 1]" link_version
   [[ -z ${link_version} ]] && link_version=1
   if [[ $link_version == 1 ]]; then
     vmess_qr_link_image
@@ -785,12 +787,12 @@ EOF
 
 tls_type() {
   if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" == "ws" ]]; then
-    echo "请选择支持的 TLS 版本（default:3）:"
+    echo "请选择支持的 TLS 版本: [default: 3]"
     echo "请注意,如果你使用 Quantaumlt X / 路由器 / 旧版 Shadowrocket / 低于 4.18.1 版本的 V2ray core 请选择 兼容模式"
     echo "1: TLS1.1 TLS1.2 and TLS1.3（兼容模式）"
     echo "2: TLS1.2 and TLS1.3 (兼容模式)"
     echo "3: TLS1.3 only"
-    read -rp "请输入：" tls_version
+    read -rp "请输入: " tls_version
     [[ -z ${tls_version} ]] && tls_version=3
     if [[ $tls_version == 3 ]]; then
       sed -i 's/ssl_protocols.*/ssl_protocols         TLSv1.3;/' $nginx_conf
@@ -990,7 +992,7 @@ menu() {
   echo -e "${Green}16.${Font} 清空 证书遗留文件"
   echo -e "${Green}17.${Font} 退出 \n"
 
-  read -rp "请输入数字：" menu_num
+  read -rp "请输入数字: " menu_num
   case $menu_num in
   0)
     update_sh
