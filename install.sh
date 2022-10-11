@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.2.3"
+shell_version="1.2.4"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -737,9 +737,9 @@ show_information() {
 ssl_judge_and_install() {
   if [[ -f "/data/v2ray.key" || -f "/data/v2ray.crt" ]]; then
     echo "/data 目录下证书文件已存在"
-    echo -e "${OK} ${GreenBG} 是否删除? [Y/n] ${Font}"
+    echo -e "${OK} ${GreenBG} 是否删除? [y/N] ${Font}"
     read -r ssl_delete
-    [[ -z ${ssl_delete} ]] && ssl_delete="Y"
+    [[ -z ${ssl_delete} ]] && ssl_delete="N"
     case $ssl_delete in
     [yY][eE][sS] | [yY])
       rm -rf /data/*
@@ -787,12 +787,12 @@ EOF
 
 tls_type() {
   if [[ -f "/etc/nginx/sbin/nginx" ]] && [[ -f "$nginx_conf" ]] && [[ "$shell_mode" == "ws" ]]; then
-    echo "请选择支持的 TLS 版本: [default: 3]"
+    echo "请选择支持的 TLS 版本:"
     echo "请注意,如果你使用 Quantaumlt X / 路由器 / 旧版 Shadowrocket / 低于 4.18.1 版本的 V2ray core 请选择 兼容模式"
     echo "1: TLS1.1 TLS1.2 and TLS1.3（兼容模式）"
     echo "2: TLS1.2 and TLS1.3 (兼容模式)"
     echo "3: TLS1.3 only"
-    read -rp "请输入: " tls_version
+    read -rp "请输入: [default: 3]" tls_version
     [[ -z ${tls_version} ]] && tls_version=3
     if [[ $tls_version == 3 ]]; then
       sed -i 's/ssl_protocols.*/ssl_protocols         TLSv1.3;/' $nginx_conf
