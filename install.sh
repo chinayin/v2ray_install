@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.2.4"
+shell_version="1.2.5"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -97,6 +97,23 @@ check_system() {
   systemctl stop ufw
   systemctl disable ufw
   echo -e "${OK} ${GreenBG} ufw 已关闭 ${Font}"
+}
+
+bbr_install() {
+  if [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
+    echo -e "${OK} ${GreenBG} 系统 [Debian ${VERSION_ID} ${VERSION}] 支持 BBR模块 ${Font}"
+    result=$(lsmod | grep bbr)
+    if [[ "$result" != "" ]]; then
+      judge "开启 BBR模块 "
+      return
+    fi
+    echo net.core.default_qdisc=fq >> /etc/sysctl.conf
+    echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.conf
+    sysctl -p
+    judge "开启 BBR模块 "
+  else
+    echo -e "${OK} ${RedBG} 当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内，忽略开启 BBR模块 ${Font}"
+  fi
 }
 
 is_root() {
@@ -870,6 +887,7 @@ judge_mode() {
 install_v2ray_ws_tls() {
   is_root
   check_system
+  bbr_install
   chrony_install
   dependency_install
   basic_optimization
@@ -897,6 +915,7 @@ install_v2ray_ws_tls() {
 install_v2_h2() {
   is_root
   check_system
+  bbr_install
   chrony_install
   dependency_install
   basic_optimization
