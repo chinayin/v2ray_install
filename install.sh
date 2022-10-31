@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.2.5"
+shell_version="1.3"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -47,7 +47,9 @@ nginx_systemd_file="/etc/systemd/system/nginx.service"
 v2ray_systemd_file="/etc/systemd/system/v2ray.service"
 v2ray_access_log="/var/log/v2ray/access.log"
 v2ray_error_log="/var/log/v2ray/error.log"
-amce_sh_file="/root/.acme.sh/acme.sh"
+acme_dir="/root/.acme.sh"
+acme_sh_file="${acme_dir}/acme.sh"
+acme_ssl_server="letsencrypt"   # zerossl,letsencrypt
 ssl_update_file="/usr/bin/ssl_update.sh"
 nginx_version="1.22.0"
 openssl_version="1.1.1g"
@@ -436,11 +438,11 @@ ssl_install() {
   fi
   judge "安装 SSL 证书生成脚本依赖"
 
-  curl https://get.acme.sh | sh
+  curl https://get.acme.sh | sh -s email=${random_num}@acme.com
   judge "安装 SSL 证书生成脚本"
 }
 domain_check() {
-  read -rp "请输入你的域名信息(eg:ap1.v2raycdn.com):" domain
+  read -rp "请输入你的域名信息(eg:ap1.v2rayxxx.com):" domain
   domain_ip=$(ping "${domain}" -c 1 | sed '1{s/[^(]*(//;s/).*//;q}')
   echo -e "${OK} ${GreenBG} 正在获取 公网ip 信息，请耐心等待 ${Font}"
   local_ip=$(curl http://api-ipv4.ip.sb/ip)
@@ -482,7 +484,7 @@ port_exist_check() {
   fi
 }
 acme_register_account(){
-  if "$HOME"/.acme.sh/acme.sh --register-account -m "${random_num}@acme.com" --server zerossl; then
+  if $acme_sh_file --register-account -m "${random_num}@acme.com" --server ${acme_ssl_server}; then
     echo -e "${OK} ${GreenBG} 注册ZeroSSL账号成功，${random_num}@acme.com ${Font}"
     sleep 2
   else
@@ -491,29 +493,29 @@ acme_register_account(){
   fi
 }
 acme() {
-  acme_register_account
+  #acme_register_account
 
-  if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force --test; then
+  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force --test --server ${acme_ssl_server}; then
     echo -e "${OK} ${GreenBG} SSL 证书测试签发成功，开始正式签发 ${Font}"
-    rm -rf "$HOME/.acme.sh/${domain}_ecc"
+    rm -rf "${acme_dir}/${domain}_ecc"
     sleep 2
   else
     echo -e "${Error} ${RedBG} SSL 证书测试签发失败 ${Font}"
-    rm -rf "$HOME/.acme.sh/${domain}_ecc"
+    rm -rf "${acme_dir}/${domain}_ecc"
     exit 1
   fi
 
-  if "$HOME"/.acme.sh/acme.sh --issue -d "${domain}" --standalone -k ec-256 --force; then
+  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force; then
     echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
     sleep 2
     mkdir /data
-    if "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force; then
+    if $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force; then
       echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
       sleep 2
     fi
   else
     echo -e "${Error} ${RedBG} SSL 证书生成失败 ${Font}"
-    rm -rf "$HOME/.acme.sh/${domain}_ecc"
+    rm -rf "${acme_dir}/${domain}_ecc"
     exit 1
   fi
 }
@@ -645,15 +647,13 @@ nginx_process_disabled() {
 #    judge "rc.local 配置"
 #}
 acme_cron_update() {
+  judge "acme 计划任务更新已禁用，请使用acme install命令操作"
+  exit 0
   wget -N -P /usr/bin --no-check-certificate "https://raw.githubusercontent.com/chinayin/v2ray_install/master/ssl_update.sh"
   if [[ $(crontab -l | grep -c "ssl_update.sh") -lt 1 ]]; then
     if [[ "${ID}" == "centos" ]]; then
-      #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-      #        &> /dev/null" /var/spool/cron/root
       sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/root
     else
-      #        sed -i "/acme.sh/c 0 3 * * 0 \"/root/.acme.sh\"/acme.sh --cron --home \"/root/.acme.sh\" \
-      #        &> /dev/null" /var/spool/cron/crontabs/root
       sed -i "/acme.sh/c 0 3 * * 0 bash ${ssl_update_file}" /var/spool/cron/crontabs/root
     fi
   fi
@@ -769,9 +769,9 @@ ssl_judge_and_install() {
 
   if [[ -f "/data/v2ray.key" || -f "/data/v2ray.crt" ]]; then
     echo "证书文件已存在"
-  elif [[ -f "$HOME/.acme.sh/${domain}_ecc/${domain}.key" && -f "$HOME/.acme.sh/${domain}_ecc/${domain}.cer" ]]; then
+  elif [[ -f "${acme_dir}/${domain}_ecc/${domain}.key" && -f "${acme_dir}/${domain}_ecc/${domain}.cer" ]]; then
     echo "证书文件已存在"
-    "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
+    $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
     judge "证书应用"
   else
     ssl_install
@@ -834,9 +834,9 @@ show_error_log() {
   [ -f ${v2ray_error_log} ] && tail -f ${v2ray_error_log} || echo -e "${RedBG}log文件不存在${Font}"
 }
 ssl_update_manuel() {
-  [ -f ${amce_sh_file} ] && "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" || echo -e "${RedBG}证书签发工具不存在，请确认你是否使用了自己的证书${Font}"
+  [ -f ${acme_sh_file} ] && $acme_sh_file --cron --home "${acme_dir}" || echo -e "${RedBG}证书签发工具不存在，请确认你是否使用了自己的证书${Font}"
   domain="$(info_extraction '\"add\"')"
-  "$HOME"/.acme.sh/acme.sh --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
+  $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
 }
 bbr_boost_sh() {
   [ -f "tcp.sh" ] && rm -rf ./tcp.sh
@@ -871,8 +871,8 @@ uninstall_all() {
   echo -e "${OK} ${GreenBG} 已卸载，SSL证书文件已保留 ${Font}"
 }
 delete_tls_key_and_crt() {
-  [[ -f $HOME/.acme.sh/acme.sh ]] && /root/.acme.sh/acme.sh uninstall >/dev/null 2>&1
-  [[ -d $HOME/.acme.sh ]] && rm -rf "$HOME/.acme.sh"
+  [[ -f "$acme_sh_file" ]] && $acme_sh_file uninstall >/dev/null 2>&1
+  [[ -d "$acme_dir" ]] && rm -rf "${acme_dir}"
   echo -e "${OK} ${GreenBG} 已清空证书遗留文件 ${Font}"
 }
 judge_mode() {
@@ -910,7 +910,7 @@ install_v2ray_ws_tls() {
   show_information
   start_process_systemd
   enable_process_systemd
-  acme_cron_update
+  # acme_cron_update
 }
 install_v2_h2() {
   is_root
