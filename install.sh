@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.3.1"
+shell_version="1.3.2"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -485,7 +485,7 @@ port_exist_check() {
   fi
 }
 acme_register_account(){
-  if $acme_sh_file --register-account -m "${random_num}@acme.com" --server ${acme_ssl_server}; then
+  if $acme_sh_file --register-account -m "${random_num}@acme.com" --server "${acme_ssl_server}"; then
     echo -e "${OK} ${GreenBG} 注册ZeroSSL账号成功，${random_num}@acme.com ${Font}"
     sleep 2
   else
@@ -496,7 +496,7 @@ acme_register_account(){
 acme() {
   #acme_register_account
 
-  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force --test --server ${acme_ssl_server}; then
+  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force --test --server "${acme_ssl_server}"; then
     echo -e "${OK} ${GreenBG} SSL 证书测试签发成功，开始正式签发 ${Font}"
     rm -rf "${acme_dir}/${domain}_ecc"
     sleep 2
@@ -506,11 +506,11 @@ acme() {
     exit 1
   fi
 
-  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force; then
+  if $acme_sh_file --issue -d "${domain}" --standalone -k ec-256 --force --server "${acme_ssl_server}"; then
     echo -e "${OK} ${GreenBG} SSL 证书生成成功 ${Font}"
     sleep 2
     mkdir /data
-    if $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force; then
+    if $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --force --server "${acme_ssl_server}"; then
       echo -e "${OK} ${GreenBG} 证书配置成功 ${Font}"
       sleep 2
     fi
@@ -772,7 +772,7 @@ ssl_judge_and_install() {
     echo "证书文件已存在"
   elif [[ -f "${acme_dir}/${domain}_ecc/${domain}.key" && -f "${acme_dir}/${domain}_ecc/${domain}.cer" ]]; then
     echo "证书文件已存在"
-    $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
+    $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --server "${acme_ssl_server}"
     judge "证书应用"
   else
     ssl_install
@@ -837,7 +837,7 @@ show_error_log() {
 ssl_update_manuel() {
   [ -f ${acme_sh_file} ] && $acme_sh_file --cron --home "${acme_dir}" || echo -e "${RedBG}证书签发工具不存在，请确认你是否使用了自己的证书${Font}"
   domain="$(info_extraction '\"add\"')"
-  $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc
+  $acme_sh_file --installcert -d "${domain}" --fullchainpath /data/v2ray.crt --keypath /data/v2ray.key --ecc --server "${acme_ssl_server}"
 }
 bbr_boost_sh() {
   [ -f "tcp.sh" ] && rm -rf ./tcp.sh
