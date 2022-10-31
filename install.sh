@@ -28,7 +28,7 @@ OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
 # 版本
-shell_version="1.3"
+shell_version="1.3.1"
 shell_mode="None"
 github_branch="master"
 version_cmp="/tmp/version_cmp.tmp"
@@ -253,8 +253,9 @@ basic_optimization() {
 }
 port_alterid_set() {
   if [[ "on" != "$old_config_status" ]]; then
-    read -rp "请输入连接端口: [default: 443]" port
-    [[ -z ${port} ]] && port="443"
+    random_port=$(random_range 8000 8500)
+    read -rp "请输入连接端口: [default: ${random_port}]" port
+    [[ -z ${port} ]] && port="${random_port}"
     # 新版v2ray 默认设置alterID为0
     #read -rp "请输入alterID: [default:0 仅允许填数字]" alterID
     [[ -z ${alterID} ]] && alterID="0"
@@ -844,6 +845,9 @@ bbr_boost_sh() {
 }
 mtproxy_sh() {
   echo -e "${Error} ${RedBG} 功能维护，暂不可用 ${Font}"
+}
+random_range() {
+  shuf -i $1-$2 -n1
 }
 
 uninstall_all() {
