@@ -14,7 +14,7 @@ wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.c
 ### 安装/更新方式（v2版本 caddy版）
 Vmess+websocket+TLS+Caddy+Website
 ```
-wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/chinayin/v2ray_install/master/install_v2.sh" && bash install_v2.sh
+wget -N --no-check-certificate -q -O install.sh "https://raw.githubusercontent.com/chinayin/v2ray_install/master/install_v2.sh" && bash install.sh
 ```
 
 ### 注意事项
