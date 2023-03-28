@@ -14,7 +14,7 @@ Font="\033[0m"
 OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
-v2ray_conf_dir=/usr/local/etc/v2ray
+v2ray_conf_dir=/etc/v2ray
 caddy_conf_dir=/etc/caddy
 v2ray_conf="${v2ray_conf_dir}/config.json"
 caddy_conf="${caddy_conf_dir}/Caddyfile"
@@ -22,6 +22,13 @@ random_num=$((RANDOM % 12 + 4))
 uuid=$(cat /proc/sys/kernel/random/uuid)
 source '/etc/os-release'
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
+
+# Load environment variables
+if ! [ -f .env ]; then
+  echo "error: .env not found."
+  exit 1
+fi
+export $(xargs < .env)
 
 curl() {
   $(type -P curl) -L -q --retry 5 --retry-delay 10 --retry-max-time 60 "$@"
@@ -161,11 +168,13 @@ install_caddy(){
 
 install_v2ray(){
   echo 'Installing v2ray..'
+  export JSON_PATH="${v2ray_conf_dir}"
   bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
+  systemctl enable v2ray
 }
 
 update_v2ray_config(){
-  echo << EOF > "${v2ray_conf}"
+  cat > "${v2ray_conf}" <<EOF
 {
   "log": {
     "access": "/var/log/v2ray/access.log",
@@ -188,7 +197,7 @@ update_v2ray_config(){
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-          "path": "/swoole"
+          "path": "${WS_PATH}"
         }
       }
     }
@@ -221,39 +230,58 @@ update_v2ray_config(){
   }
 }
 EOF
-
 }
 
 update_caddy_config(){
-  echo "{
-                debug
-                admin off
-                log {
-                        output stdout
-                }
-        }
-        #domain# {
-                encode gzip
-                tls #tlsmail# {
-                        protocols tls1.2 tls1.3
-                        ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-                        curves x25519
-                }
-                @websockets {
-                        header Connection *Upgrade*
-                        header Upgrade websocket
-                }
-                handle @websockets {
-                        reverse_proxy 127.0.0.1:10000
-                }
-                handle {
-                        reverse_proxy #reverse_proxy_host# {
-                                trusted_proxies 0.0.0.0/0
-                                header_up Host {upstream_hostport}
-                        }
-                }
-        }
-" > "${caddy_conf}"
+  cat > "${caddy_conf}" <<EOF
+{
+  admin off
+  log {
+    output stdout
+  }
+}
+${DOMAIN} {
+  encode gzip
+  tls ${TLSMAIL} {
+    protocols tls1.2 tls1.3
+    ciphers TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+    curves x25519
+  }
+  @websockets {
+    header Connection *Upgrade*
+    header Upgrade websocket
+  }
+  handle @websockets {
+    reverse_proxy 127.0.0.1:10000
+  }
+  handle {
+    reverse_proxy ${PROXY_HOST} {
+      trusted_proxies 0.0.0.0/0
+      header_up Host {upstream_hostport}
+    }
+  }
+}
+EOF
+}
+
+show_config() {
+  echo -e "\n\n\nV2Ray configuration:"
+  echo "  UUID: ${uuid}"
+  echo "  DOMAIN: ${DOMAIN}"
+  echo "  WS_PATH: ${WS_PATH}"
+}
+
+show_help() {
+  echo "usage: $0 [--remove | --version number | -c | -f | -h | -l | -p]"
+  echo '  [-p address] [--version number | -c | -f]'
+  echo '  --remove        Remove V2Ray'
+  echo '  --version       Install the specified version of V2Ray, e.g., --version v4.18.0'
+  echo '  -c, --check     Check if V2Ray can be updated'
+  echo '  -f, --force     Force installation of the latest version of V2Ray'
+  echo '  -h, --help      Show help'
+  echo '  -l, --local     Install V2Ray from a local file'
+  echo '  -p, --proxy     Download through a proxy server, e.g., -p http://127.0.0.1:8118 or -p socks5://127.0.0.1:1080'
+  exit 0
 }
 
 judgment_parameters() {
@@ -328,9 +356,9 @@ main() {
   install_v2ray
 
   update_v2ray_config
+  update_caddy_config
 
+  show_config
 }
 
 main "$@"
-
-#sed -i "s/#uuid#/${uuid}/" /etc/selinux/config
