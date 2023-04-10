@@ -174,7 +174,7 @@ install_v2ray(){
 }
 
 update_v2ray_config(){
-  cat > "${v2ray_conf}" <<EOF
+  cat > "${v2ray_conf}" <<"EOF"
 {
   "log": {
     "access": "/var/log/v2ray/access.log",
@@ -233,7 +233,7 @@ EOF
 }
 
 update_caddy_config(){
-  cat > "${caddy_conf}" <<EOF
+  cat > "${caddy_conf}" <<"EOF"
 {
   admin off
   log {
