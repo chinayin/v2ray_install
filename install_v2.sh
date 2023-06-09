@@ -14,21 +14,24 @@ Font="\033[0m"
 OK="${Green}[OK]${Font}"
 Error="${Red}[错误]${Font}"
 
+ME=$(basename $0)
+shell_dir="$(pwd)"
 v2ray_conf_dir=/etc/v2ray
 caddy_conf_dir=/etc/caddy
 v2ray_conf="${v2ray_conf_dir}/config.json"
 caddy_conf="${caddy_conf_dir}/Caddyfile"
+env_conf="${shell_dir}/.env"
 random_num=$((RANDOM % 12 + 4))
 uuid=$(cat /proc/sys/kernel/random/uuid)
 source '/etc/os-release'
 VERSION=$(echo "${VERSION}" | awk -F "[()]" '{print $2}')
 
 # Load environment variables
-if ! [ -f .env ]; then
-  echo "error: .env not found."
+if ! [ -f "${env_conf}" ]; then
+  echo "error: .env file not found. [${env_conf}]"
   exit 1
 fi
-export $(xargs < .env)
+export $(xargs < "${env_conf}")
 
 curl() {
   $(type -P curl) -L -q --retry 5 --retry-delay 10 --retry-max-time 60 "$@"
