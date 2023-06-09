@@ -21,6 +21,7 @@ caddy_conf_dir=/etc/caddy
 v2ray_conf="${v2ray_conf_dir}/config.json"
 caddy_conf="${caddy_conf_dir}/Caddyfile"
 env_conf="${shell_dir}/.env"
+install_lock_conf="${shell_dir}/.install.lock"
 random_num=$((RANDOM % 12 + 4))
 uuid=$(cat /proc/sys/kernel/random/uuid)
 source '/etc/os-release'
@@ -267,11 +268,18 @@ ${DOMAIN} {
 EOF
 }
 
-show_config() {
+save_install_config() {
+  cat > "${install_lock_conf}" <<EOF
+uuid: "${uuid}"
+domain: "${DOMAIN}"
+ws_path: ${WS_PATH}"
+time: $(date +"%Y-%m-%dT%H:%M:%SZ")
+EOF
+}
+
+show_install_config() {
   echo -e "\n\n\nV2Ray configuration:"
-  echo "  UUID: ${uuid}"
-  echo "  DOMAIN: ${DOMAIN}"
-  echo "  WS_PATH: ${WS_PATH}"
+  cat "${install_lock_conf}"
 }
 
 show_help() {
@@ -361,7 +369,8 @@ main() {
   update_v2ray_config
   update_caddy_config
 
-  show_config
+  save_install_config
+  show_install_config
 }
 
 main "$@"
