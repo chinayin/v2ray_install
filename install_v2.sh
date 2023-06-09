@@ -149,6 +149,13 @@ identify_the_operating_system_and_architecture() {
   fi
 }
 
+check_if_exists_lock_file() {
+  if [ -f "${install_lock_conf}" ]; then
+    echo "error: .install.lock file already exists. Please remove it and try again."
+    exit 1
+  fi
+}
+
 install_software() {
   package_name="$1"
   file_to_detect="$2"
@@ -268,7 +275,7 @@ ${DOMAIN} {
 EOF
 }
 
-save_install_config() {
+save_lock_file() {
   cat > "${install_lock_conf}" <<EOF
 uuid: "${uuid}"
 domain: "${DOMAIN}"
@@ -277,7 +284,11 @@ time: $(date +"%Y-%m-%dT%H:%M:%SZ")
 EOF
 }
 
-show_install_config() {
+remove_lock_file() {
+  rm -f "${install_lock_conf}"
+}
+
+show_lock_file() {
   echo -e "\n\n\nV2Ray configuration:"
   cat "${install_lock_conf}"
 }
@@ -357,6 +368,9 @@ main() {
   [[ "$HELP" -eq '1' ]] && show_help
 #  [[ "$CHECK" -eq '1' ]] && check_update
 #  [[ "$REMOVE" -eq '1' ]] && remove_v2ray
+  [[ "$FORCE" -eq '1' ]] && remove_lock_file
+
+  check_if_exists_lock_file
 
   TMP_DIRECTORY="$(mktemp -d)"
 
@@ -369,8 +383,8 @@ main() {
   update_v2ray_config
   update_caddy_config
 
-  save_install_config
-  show_install_config
+  save_lock_file
+  show_lock_file
 }
 
 main "$@"
