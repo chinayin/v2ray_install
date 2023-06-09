@@ -277,9 +277,9 @@ EOF
 
 save_lock_file() {
   cat > "${install_lock_conf}" <<EOF
-uuid: "${uuid}"
-domain: "${DOMAIN}"
-ws_path: ${WS_PATH}"
+uuid: ${uuid}
+domain: ${DOMAIN}
+ws_path: ${WS_PATH}
 time: $(date +"%Y-%m-%dT%H:%M:%SZ")
 EOF
 }
