@@ -122,23 +122,18 @@ identify_the_operating_system_and_architecture() {
     if [[ "$(type -P apt)" ]]; then
       PACKAGE_MANAGEMENT_INSTALL='apt -y --no-install-recommends install'
       PACKAGE_MANAGEMENT_REMOVE='apt purge'
-      package_provide_tput='ncurses-bin'
     elif [[ "$(type -P dnf)" ]]; then
       PACKAGE_MANAGEMENT_INSTALL='dnf -y install'
       PACKAGE_MANAGEMENT_REMOVE='dnf remove'
-      package_provide_tput='ncurses'
     elif [[ "$(type -P yum)" ]]; then
       PACKAGE_MANAGEMENT_INSTALL='yum -y install'
       PACKAGE_MANAGEMENT_REMOVE='yum remove'
-      package_provide_tput='ncurses'
     elif [[ "$(type -P zypper)" ]]; then
       PACKAGE_MANAGEMENT_INSTALL='zypper install -y --no-recommends'
       PACKAGE_MANAGEMENT_REMOVE='zypper remove'
-      package_provide_tput='ncurses-utils'
     elif [[ "$(type -P pacman)" ]]; then
       PACKAGE_MANAGEMENT_INSTALL='pacman -Syu --noconfirm'
       PACKAGE_MANAGEMENT_REMOVE='pacman -Rsn'
-      package_provide_tput='ncurses'
     else
       echo "error: The script does not support the package manager in this operating system."
       exit 1
@@ -289,7 +284,7 @@ remove_lock_file() {
 }
 
 show_lock_file() {
-  echo -e "\n\n\nV2Ray configuration:"
+  echo -e "\n\n\nV2Ray configuration:\n"
   cat "${install_lock_conf}"
 }
 
@@ -357,12 +352,6 @@ main() {
   check_if_running_as_root
   identify_the_operating_system_and_architecture
   judgment_parameters "$@"
-
-  install_software "$package_provide_tput" 'tput'
-  red=$(tput setaf 1)
-  green=$(tput setaf 2)
-  aoi=$(tput setaf 6)
-  reset=$(tput sgr0)
 
   # Parameter information
   [[ "$HELP" -eq '1' ]] && show_help
