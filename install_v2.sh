@@ -275,7 +275,7 @@ save_lock_file() {
 uuid: ${uuid}
 domain: ${DOMAIN}
 ws_path: ${WS_PATH}
-time: $(date +"%Y-%m-%dT%H:%M:%SZ")
+time: $(date +"%Y-%m-%dT%H:%M:%S%Z")
 EOF
 }
 
