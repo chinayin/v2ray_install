@@ -167,7 +167,7 @@ install_acme(){
   if [ -f "${acme_dir}/acme.sh" ]; then
     echo "info: acme is installed."
   else
-    curl https://get.acme.sh | sh -s email="${TLSMAIL}" --home="${acme_dir}"
+    curl https://get.acme.sh | sh -s email="${TLSMAIL}" --home "${acme_dir}"
   fi
 }
 
