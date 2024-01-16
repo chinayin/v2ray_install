@@ -16,6 +16,7 @@ Error="${Red}[错误]${Font}"
 
 ME=$(basename $0)
 shell_dir="$(pwd)"
+acme_dir="/root/.acme.sh"
 trojan_conf_dir=/etc/trojan
 trojan_conf="${trojan_conf_dir}/server.yaml"
 env_conf="${shell_dir}/.env"
@@ -163,10 +164,10 @@ install_software() {
 
 install_acme(){
   install_software 'socat' 'socat'
-  if [ -f "/root/.acme.sh/acme.sh" ]; then
+  if [ -f "${acme_dir}/acme.sh" ]; then
     echo "info: acme is installed."
   else
-    curl https://get.acme.sh | sh -s email="${TLSMAIL}" --home="/root/.acme.sh"
+    curl https://get.acme.sh | sh -s email="${TLSMAIL}" --home="${acme_dir}"
   fi
 }
 
@@ -201,7 +202,7 @@ EOF
 
 issue_domain() {
   echo "Issue domain: $DOMAIN"
-  "/root/.acme.sh"/acme.sh --issue --dns dns_ali -d "$DOMAIN" --cert-file "${trojan_conf_dir}/server.crt" --key-file "${trojan_conf_dir}/server.key"
+  "${acme_dir}"/acme.sh --issue --dns dns_ali -d "$DOMAIN" --cert-file "${trojan_conf_dir}/server.crt" --key-file "${trojan_conf_dir}/server.key"
   chmod 755 ${trojan_conf_dir}/server.crt ${trojan_conf_dir}/server.key
 }
 
