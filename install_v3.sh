@@ -203,6 +203,7 @@ EOF
 
 issue_domain() {
   echo "Issue domain: $DOMAIN"
+  "${acme_dir}"/acme.sh --set-default-ca --server letsencrypt
   "${acme_dir}"/acme.sh --issue --dns dns_ali -d "$DOMAIN" --cert-file "${trojan_conf_dir}/server.crt" --key-file "${trojan_conf_dir}/server.key"
   chmod 755 ${trojan_conf_dir}/server.crt ${trojan_conf_dir}/server.key
 }
