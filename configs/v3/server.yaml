@@ -1,0 +1,17 @@
+run-type: server
+local-addr: 0.0.0.0
+local-port: 12308
+remote-addr: 180.97.70.235
+remote-port: 443
+password:
+  - 123456
+ssl:
+  cert: /etc/trojan/server.crt
+  key: /etc/trojan/server.key
+  sni: mydomain.com
+router:
+  enabled: true
+  block:
+    - 'geoip:private'
+  geoip: /usr/local/share/trojan/geoip.dat
+  geosite: /usr/local/share/trojan/geosite.dat
